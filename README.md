@@ -6,8 +6,9 @@ University Learning Analytics Dataset (OULAD)** — 32,593 learner enrolments an
 Analytics / Employee-Experience data-science role; **all data is the public OULAD**, used
 here as a proxy for training-program analytics.
 
-> Status: **Phase 1 complete** — SQL warehouse, data-quality checks, analytical marts, and
-> governed KPI definitions. Dashboard + deep-dives + early-warning model are next.
+> Status: **Phase 2 complete** — SQL warehouse + data-quality + governed KPIs, and a
+> **Streamlit/Plotly dashboard** (outcomes, engagement, content, cohorts, anomaly flags).
+> Early-warning model + packaged findings are next.
 
 ## What it does today
 
@@ -38,6 +39,17 @@ python scripts/build_warehouse.py        # load -> quality checks -> marts/KPIs
 
 Point at CSVs elsewhere with `OULAD_RAW=/path/to/csvs python scripts/build_warehouse.py`.
 
+3. Run the dashboard:
+
+```bash
+python scripts/export_serving.py   # small aggregates for fast/portable serving
+streamlit run app.py
+```
+
+The dashboard reads the warehouse locally, or the committed `data/serving/*.parquet`
+when deployed — so it runs **without** the 454 MB raw clickstream. Deploy on Railway
+(included `Dockerfile` + `railway.json`) or Streamlit Community Cloud (point it at `app.py`).
+
 ## Design principles
 
 - **Deterministic & reproducible** — everything is SQL + fixed transforms; same input →
@@ -67,7 +79,7 @@ Point at CSVs elsewhere with `OULAD_RAW=/path/to/csvs python scripts/build_wareh
 
 ## Roadmap
 
-- **Phase 2** — Streamlit + Plotly dashboard: outcomes, engagement timeline, content
+- ✅ **Phase 2** — Streamlit + Plotly dashboard: outcomes, engagement timeline, content
   performance, cohort drilldowns, anomaly flags.
 - **Phase 3** — early-warning deep-dive: predict withdrawal/fail from the first 4 weeks,
   with a temporal split, honest recall/PR-AUC, and a fairness check.
