@@ -88,6 +88,32 @@ def content_fig(df: pd.DataFrame) -> go.Figure:
     return fig
 
 
+def model_importance_fig(df: pd.DataFrame) -> go.Figure:
+    """Feature importances for the early-warning model (horizontal bar)."""
+    d = df.sort_values("importance").tail(10)
+    fig = go.Figure(go.Bar(
+        orientation="h", x=d["importance"], y=d["feature"],
+        marker_color=BLUE, marker_line=dict(color=SURFACE, width=2),
+    ))
+    fig.update_layout(showlegend=False, xaxis_title="importance", **_LAYOUT)
+    fig.update_xaxes(showgrid=True, gridcolor="#ececec")
+    fig.update_yaxes(showgrid=False)
+    return fig
+
+
+def model_calibration_fig(df: pd.DataFrame) -> go.Figure:
+    """Reliability curve: predicted probability vs actual at-risk rate, by decile."""
+    fig = go.Figure()
+    fig.add_scatter(x=[0, 1], y=[0, 1], mode="lines", name="perfect",
+                    line=dict(color=MUTED, width=1, dash="dot"))
+    fig.add_scatter(x=df["mean_pred"], y=df["actual_rate"], mode="lines+markers",
+                    name="model", line=dict(color=BLUE, width=2), marker=dict(size=7))
+    fig.update_layout(xaxis_title="predicted risk", yaxis_title="actual at-risk rate", **_LAYOUT)
+    fig.update_xaxes(range=[0, 1], showgrid=True, gridcolor="#ececec")
+    fig.update_yaxes(range=[0, 1], showgrid=True, gridcolor="#ececec")
+    return fig
+
+
 def segment_fig(df: pd.DataFrame, dimension: str) -> go.Figure:
     """Pass vs withdrawal rate by a chosen demographic dimension."""
     d = df[df["dimension"] == dimension].copy().sort_values("pass_rate", ascending=False)

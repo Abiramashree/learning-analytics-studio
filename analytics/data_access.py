@@ -68,6 +68,21 @@ def get_frames() -> Dict[str, pd.DataFrame]:
     return frames
 
 
+def load_model_artifacts():
+    """Load the early-warning model's exported artifacts, or None if not trained yet."""
+    import json
+
+    metrics_path = SERVING_DIR / "model_metrics.json"
+    if not metrics_path.exists():
+        return None
+    out = {"metrics": json.loads(metrics_path.read_text())}
+    for name in ("importance", "calibration", "fairness", "scores"):
+        p = SERVING_DIR / f"model_{name}.parquet"
+        if p.exists():
+            out[name] = pd.read_parquet(p)
+    return out
+
+
 def detect_course_anomalies(outcomes: pd.DataFrame, z_threshold: float = 1.5) -> pd.DataFrame:
     """Deterministic flag: courses whose withdrawal rate is an outlier (|z| >= threshold)."""
     df = outcomes.copy()

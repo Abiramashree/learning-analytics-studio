@@ -6,9 +6,10 @@ University Learning Analytics Dataset (OULAD)** — 32,593 learner enrolments an
 Analytics / Employee-Experience data-science role; **all data is the public OULAD**, used
 here as a proxy for training-program analytics.
 
-> Status: **Phase 2 complete** — SQL warehouse + data-quality + governed KPIs, and a
-> **Streamlit/Plotly dashboard** (outcomes, engagement, content, cohorts, anomaly flags).
-> Early-warning model + packaged findings are next.
+> Status: **Phase 3 complete** — SQL warehouse + data-quality + governed KPIs, a
+> **Streamlit/Plotly dashboard** (outcomes, engagement, content, cohorts, anomalies), and an
+> **early-warning model** (predict at-risk from the first 4 weeks; temporal split; honest
+> metrics + fairness; intervention what-if). Packaged findings/deck are next.
 
 ## What it does today
 
@@ -25,6 +26,9 @@ here as a proxy for training-program analytics.
 - **Early engagement tracks success** — mean clicks in the first 4 weeks:
   Distinction **427** → Pass **317** → Fail **176** → Withdrawn **131**.
 - Engagement is concentrated in course content (28%), forums (20%), and quizzes (18%).
+- **Early-warning model** (first 4 weeks → at-risk, 2013→2014 temporal split): **ROC-AUC 0.79,
+  PR-AUC 0.84**; at a ~70% recall operating point, **75% precision**. See the
+  [model card](docs/model_card.md).
 
 ## Quick start
 
@@ -81,7 +85,7 @@ when deployed — so it runs **without** the 454 MB raw clickstream. Deploy on R
 
 - ✅ **Phase 2** — Streamlit + Plotly dashboard: outcomes, engagement timeline, content
   performance, cohort drilldowns, anomaly flags.
-- **Phase 3** — early-warning deep-dive: predict withdrawal/fail from the first 4 weeks,
-  with a temporal split, honest recall/PR-AUC, and a fairness check.
-- **Phase 4** — intervention what-if + packaged findings (annotated visuals / deck);
-  optional validated LLM narrative layer; Tableau companion spec.
+- ✅ **Phase 3** — early-warning deep-dive: predict withdrawal/fail from the first 4 weeks,
+  with a temporal split, honest recall/PR-AUC, fairness check, and an intervention what-if.
+- **Phase 4** — packaged findings (annotated visuals / deck); optional validated LLM
+  narrative layer; Tableau companion spec.

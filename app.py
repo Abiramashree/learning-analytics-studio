@@ -9,7 +9,7 @@ and deterministic anomaly flags. Run: streamlit run app.py
 import streamlit as st
 
 import viz
-from analytics.data_access import get_frames
+from analytics.data_access import get_frames, load_model_artifacts
 
 st.set_page_config(page_title="Learning Analytics Studio", page_icon="🎓", layout="wide")
 
@@ -20,6 +20,11 @@ st.caption("Learner engagement & outcomes on the Open University Learning Analyt
 @st.cache_data(show_spinner="Loading analytics…")
 def load():
     return get_frames()
+
+
+@st.cache_data(show_spinner=False)
+def load_model():
+    return load_model_artifacts()
 
 
 try:
@@ -37,8 +42,8 @@ with st.sidebar:
     )
     st.caption("Data: © Open University, OULAD (open dataset). Portfolio project.")
 
-tab_o, tab_e, tab_c, tab_s = st.tabs(
-    ["🎯 Outcomes", "📈 Engagement", "📚 Content", "👥 Cohorts"]
+tab_o, tab_e, tab_c, tab_s, tab_m = st.tabs(
+    ["🎯 Outcomes", "📈 Engagement", "📚 Content", "👥 Cohorts", "🚨 Early-warning"]
 )
 
 # ------------------------------------------------------------------- Outcomes
@@ -88,3 +93,55 @@ with tab_s:
     st.markdown(f"**Pass vs withdrawal by {dim.replace('_', ' ')}**")
     st.plotly_chart(viz.segment_fig(F["segment"], dim), use_container_width=True)
     st.caption("Segment gaps flag where to target support (shown, not imputed; some bands have nulls).")
+
+# -------------------------------------------------------------- Early-warning
+with tab_m:
+    M = load_model()
+    if not M:
+        st.warning("Model not trained yet. Run `python scripts/train_model.py` to generate it.")
+    else:
+        m = M["metrics"]
+        st.subheader("Early-warning model — flag at-risk learners from the first 4 weeks")
+        st.caption(
+            f"Target = Withdrawal or Fail. Trained on {m['train_years']} "
+            f"({m['n_train']:,}), tested on {m['test_years']} ({m['n_test']:,}) — a temporal "
+            "split so the model is judged on future cohorts, not shuffled rows."
+        )
+        k = st.columns(5)
+        k[0].metric("ROC-AUC", m["roc_auc"])
+        k[1].metric("PR-AUC", m["pr_auc"])
+        k[2].metric("Recall", f"{m['recall']*100:.0f}%")
+        k[3].metric("Precision", f"{m['precision']*100:.0f}%")
+        k[4].metric("Test base rate", f"{m['base_rate_test']*100:.0f}%")
+        st.caption(f"Operating point: flag when risk ≥ {m['threshold']} (chosen for ~70% recall). "
+                   f"Brier {m['brier']} (lower = better calibrated).")
+
+        c1, c2 = st.columns(2)
+        if "importance" in M:
+            c1.markdown("**What drives the prediction**")
+            c1.plotly_chart(viz.model_importance_fig(M["importance"]), use_container_width=True)
+        if "calibration" in M:
+            c2.markdown("**Calibration** (predicted vs actual risk)")
+            c2.plotly_chart(viz.model_calibration_fig(M["calibration"]), use_container_width=True)
+
+        if "fairness" in M:
+            st.markdown("**Fairness check** — flag rate & recall by group (watch for disparities)")
+            st.dataframe(M["fairness"], use_container_width=True, hide_index=True)
+
+        if "scores" in M:
+            st.markdown("**Intervention what-if** — flag the highest-risk learners")
+            scores = M["scores"].sort_values("risk_score", ascending=False).reset_index(drop=True)
+            pct = st.slider("Flag the top N% by risk", 5, 50, 20, step=5)
+            n_flag = max(1, int(len(scores) * pct / 100))
+            flagged = scores.head(n_flag)
+            caught = int(flagged["at_risk"].sum())
+            total_risk = int(scores["at_risk"].sum())
+            cc = st.columns(3)
+            cc[0].metric("Learners flagged", f"{n_flag:,}")
+            cc[1].metric("At-risk caught", f"{caught:,} / {total_risk:,}",
+                         f"{caught/total_risk*100:.0f}% recall")
+            cc[2].metric("Precision of flag", f"{caught/n_flag*100:.0f}%")
+            st.caption("Trade-off: a bigger flag list catches more at-risk learners but wastes more "
+                       "outreach on learners who would have passed anyway.")
+            with st.expander("Highest-risk learners (test cohort)"):
+                st.dataframe(flagged.head(50), use_container_width=True, hide_index=True)
