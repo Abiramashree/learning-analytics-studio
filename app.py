@@ -66,15 +66,16 @@ with tab_ov:
 
     c1, c2 = st.columns(2)
     c1.markdown("**Outcome mix**")
-    c1.plotly_chart(viz.outcome_mix_fig(o), use_container_width=True)
+    c1.plotly_chart(viz.outcome_mix_fig(o), width="stretch")
     c2.markdown("**Learner progression funnel** — where the cohort falls away")
-    c2.plotly_chart(viz.funnel_fig(F["funnel"]), use_container_width=True)
+    c2.plotly_chart(viz.funnel_fig(F["funnel"]), width="stretch")
 
     c3, c4 = st.columns(2)
     c3.markdown("**Early engagement by outcome** — avg clicks, first 4 weeks")
-    c3.plotly_chart(viz.engagement_by_outcome_fig(F["engagement_by_outcome"]), use_container_width=True)
+    c3.plotly_chart(viz.engagement_by_outcome_fig(F["engagement_by_outcome"]),
+                    width="stretch", key="ov_engagement")
     c4.markdown("**Where attention goes** — share of engagement by content type")
-    c4.plotly_chart(viz.content_fig(F["content"]), use_container_width=True)
+    c4.plotly_chart(viz.content_fig(F["content"]), width="stretch", key="ov_content")
 
     st.success(
         "**Headline:** engagement in the **first 4 weeks** cleanly separates who passes from "
@@ -107,27 +108,27 @@ with tab_stu:
     dims = list(seg["dimension"].unique())
     dim = st.selectbox("Break down by", dims, index=dims.index("age_band") if "age_band" in dims else 0,
                        key="stu_dim")
-    st.plotly_chart(viz.demographics_bar_fig(seg, dim), use_container_width=True)
+    st.plotly_chart(viz.demographics_bar_fig(seg, dim), width="stretch")
     st.caption("Counts shown as-is (some bands carry nulls); used to understand who the learners are.")
 
     st.markdown("**Registration lead time** — how early learners enrol, and the pass rate of each group")
-    st.plotly_chart(viz.registration_timing_fig(F["registration_timing"]), use_container_width=True)
+    st.plotly_chart(viz.registration_timing_fig(F["registration_timing"]), width="stretch")
     st.info("Learners who register late (or with no recorded date) withdraw far more — a cheap, "
             "pre-course risk signal available before a single click.")
 
 # ------------------------------------------------------------------- Outcomes
 with tab_out:
     st.markdown("**Pass vs withdrawal by course** (sorted by withdrawal)")
-    st.plotly_chart(viz.outcomes_by_course_fig(F["outcomes_by_course"]), use_container_width=True)
+    st.plotly_chart(viz.outcomes_by_course_fig(F["outcomes_by_course"]), width="stretch")
 
     st.markdown("**Pass-rate heatmap** — module × presentation (spot weak course runs at a glance)")
-    st.plotly_chart(viz.pass_rate_heatmap_fig(F["outcomes_by_course"]), use_container_width=True)
+    st.plotly_chart(viz.pass_rate_heatmap_fig(F["outcomes_by_course"]), width="stretch")
 
     st.markdown("**Outcome gaps by cohort** — pass vs withdrawal rate by segment")
     seg = F["segment"]
     dims = list(seg["dimension"].unique())
     dim = st.selectbox("Segment by", dims, index=0, key="out_dim")
-    st.plotly_chart(viz.segment_fig(seg, dim), use_container_width=True)
+    st.plotly_chart(viz.segment_fig(seg, dim), width="stretch")
     st.caption("Segment gaps flag where to target support (shown, not imputed; some bands have nulls).")
 
     st.markdown("**Anomaly flags — courses with outlier withdrawal** (|z| ≥ 1.5)")
@@ -140,17 +141,18 @@ with tab_out:
         show = show[["course", "enrolments", "withdrawal_rate", "z", "direction"]]
         show["withdrawal_rate"] = (show["withdrawal_rate"] * 100).round(1)
         st.dataframe(show.rename(columns={"withdrawal_rate": "withdrawal_%"}),
-                     use_container_width=True, hide_index=True)
+                     width="stretch", hide_index=True)
 
 # ----------------------------------------------------------------- Engagement
 with tab_eng:
     st.markdown("**Early engagement by outcome** — avg clicks in the first 4 weeks")
-    st.plotly_chart(viz.engagement_by_outcome_fig(F["engagement_by_outcome"]), use_container_width=True)
+    st.plotly_chart(viz.engagement_by_outcome_fig(F["engagement_by_outcome"]),
+                    width="stretch", key="eng_engagement")
     st.markdown("**Engagement over the course** — avg clicks/student per week, by outcome")
-    st.plotly_chart(viz.engagement_timeline_fig(F["timeline"]), use_container_width=True)
+    st.plotly_chart(viz.engagement_timeline_fig(F["timeline"]), width="stretch")
 
     st.markdown("**Dose-response** — outcomes across first-4-week engagement deciles")
-    st.plotly_chart(viz.engagement_dose_fig(F["engagement_dose"]), use_container_width=True)
+    st.plotly_chart(viz.engagement_dose_fig(F["engagement_dose"]), width="stretch")
     st.info("A monotonic relationship: each step up in early engagement raises pass rate and "
             "lowers withdrawal — pass rate runs from ~7% (least active decile) to ~75% (most active). "
             "This is the empirical basis for the early-warning model.")
@@ -158,22 +160,22 @@ with tab_eng:
 # -------------------------------------------------- Content & Effectiveness
 with tab_con:
     st.markdown("**Where learners spend attention** — share of engagement by content type")
-    st.plotly_chart(viz.content_fig(F["content"]), use_container_width=True)
+    st.plotly_chart(viz.content_fig(F["content"]), width="stretch", key="con_content")
     st.caption("Useful for prioritising content investment — most attention is a handful of activity types.")
 
     c1, c2 = st.columns(2)
     c1.markdown("**Score distribution by assessment type**")
-    c1.plotly_chart(viz.assessment_box_fig(F["assessment_by_type"]), use_container_width=True)
+    c1.plotly_chart(viz.assessment_box_fig(F["assessment_by_type"]), width="stretch")
     c1.caption("Box = p25–p75, whiskers p05–p95. CMAs score highest; exams are hardest.")
     c2.markdown("**Submission timing vs the due date**")
-    c2.plotly_chart(viz.submission_timing_fig(F["submission_timing"]), use_container_width=True)
+    c2.plotly_chart(viz.submission_timing_fig(F["submission_timing"]), width="stretch")
     c2.caption("Early submitters score higher on average — a behavioural marker of effectiveness.")
 
     st.markdown("**Training effectiveness — avg assessment score per course**")
-    st.plotly_chart(viz.assessment_by_course_fig(F["assessment_by_course"]), use_container_width=True)
+    st.plotly_chart(viz.assessment_by_course_fig(F["assessment_by_course"]), width="stretch")
 
     st.markdown("**Engagement → learning** — avg assessment score across engagement deciles")
-    st.plotly_chart(viz.engagement_score_dose_fig(F["engagement_dose"]), use_container_width=True)
+    st.plotly_chart(viz.engagement_score_dose_fig(F["engagement_dose"]), width="stretch")
     st.info("More early engagement doesn't just lift completion — it lifts measured learning: "
             "average score rises from ~69 to ~80 from the least- to most-engaged decile.")
 
@@ -203,14 +205,14 @@ with tab_m:
         c1, c2 = st.columns(2)
         if "importance" in M:
             c1.markdown("**What drives the prediction**")
-            c1.plotly_chart(viz.model_importance_fig(M["importance"]), use_container_width=True)
+            c1.plotly_chart(viz.model_importance_fig(M["importance"]), width="stretch")
         if "calibration" in M:
             c2.markdown("**Calibration** (predicted vs actual risk)")
-            c2.plotly_chart(viz.model_calibration_fig(M["calibration"]), use_container_width=True)
+            c2.plotly_chart(viz.model_calibration_fig(M["calibration"]), width="stretch")
 
         if "fairness" in M:
             st.markdown("**Fairness check** — flag rate & recall by group (watch for disparities)")
-            st.dataframe(M["fairness"], use_container_width=True, hide_index=True)
+            st.dataframe(M["fairness"], width="stretch", hide_index=True)
 
         if "scores" in M:
             st.markdown("**Intervention what-if** — flag the highest-risk learners")
@@ -228,4 +230,4 @@ with tab_m:
             st.caption("Trade-off: a bigger flag list catches more at-risk learners but wastes more "
                        "outreach on learners who would have passed anyway.")
             with st.expander("Highest-risk learners (test cohort)"):
-                st.dataframe(flagged.head(50), use_container_width=True, hide_index=True)
+                st.dataframe(flagged.head(50), width="stretch", hide_index=True)
