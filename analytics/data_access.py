@@ -23,6 +23,12 @@ QUERIES: Dict[str, str] = {
     "engagement_by_outcome": "SELECT * FROM kpi_engagement_by_outcome",
     "content": "SELECT * FROM kpi_content_performance",
     "segment": "SELECT * FROM kpi_pass_rate_by_segment",
+    "funnel": "SELECT * FROM kpi_funnel",
+    "registration_timing": "SELECT * FROM kpi_registration_timing",
+    "engagement_dose": "SELECT * FROM kpi_engagement_dose",
+    "assessment_by_type": "SELECT * FROM kpi_assessment_by_type",
+    "assessment_by_course": "SELECT * FROM kpi_assessment_by_course",
+    "submission_timing": "SELECT * FROM kpi_submission_timing",
     # Average clicks per enrolled student per relative week, by outcome (timeline).
     "timeline": """
         WITH n AS (SELECT final_result, count(*) AS n FROM mart_student GROUP BY 1)

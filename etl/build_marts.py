@@ -30,6 +30,6 @@ def _run_sql_file(con: duckdb.DuckDBPyConnection, path: Path) -> int:
 
 
 def build_marts(con: duckdb.DuckDBPyConnection) -> None:
-    for fname in ("marts.sql", "metrics.sql"):
+    for fname in ("marts.sql", "metrics.sql", "analytics.sql"):
         n = _run_sql_file(con, SQL_DIR / fname)
         print(f"  ran {fname}: {n} statements")

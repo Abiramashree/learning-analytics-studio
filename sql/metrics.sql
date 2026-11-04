@@ -47,7 +47,13 @@ SELECT 'highest_education', highest_education, count(*), round(avg(passed::INT),
 FROM mart_student GROUP BY highest_education
 UNION ALL
 SELECT 'disability', disability, count(*), round(avg(passed::INT), 4), round(avg(withdrawn::INT), 4)
-FROM mart_student GROUP BY disability;
+FROM mart_student GROUP BY disability
+UNION ALL
+SELECT 'gender', gender, count(*), round(avg(passed::INT), 4), round(avg(withdrawn::INT), 4)
+FROM mart_student GROUP BY gender
+UNION ALL
+SELECT 'region', region, count(*), round(avg(passed::INT), 4), round(avg(withdrawn::INT), 4)
+FROM mart_student GROUP BY region;
 
 -- Content performance by activity type (share of total engagement).
 CREATE OR REPLACE VIEW kpi_content_performance AS

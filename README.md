@@ -6,10 +6,15 @@ University Learning Analytics Dataset (OULAD)** — 32,593 learner enrolments an
 Analytics / Employee-Experience data-science role; **all data is the public OULAD**, used
 here as a proxy for training-program analytics.
 
-> Status: **Phase 3 complete** — SQL warehouse + data-quality + governed KPIs, a
-> **Streamlit/Plotly dashboard** (outcomes, engagement, content, cohorts, anomalies), and an
-> **early-warning model** (predict at-risk from the first 4 weeks; temporal split; honest
-> metrics + fairness; intervention what-if). Packaged findings/deck are next.
+> Status: **Phase 3 complete** — SQL warehouse + data-quality + governed KPIs, a six-tab
+> **Streamlit/Plotly dashboard**, and an **early-warning model** (predict at-risk from the
+> first 4 weeks; temporal split; honest metrics + fairness; intervention what-if).
+>
+> **Dashboard tabs:** 📊 Overview (business framing, outcome-mix donut, learner funnel) ·
+> 👥 Students (registrations, cohort composition, registration lead time) · 🎯 Outcomes
+> (by-course, pass-rate heatmap, segment gaps, anomalies) · 📈 Engagement (by-outcome,
+> timeline, dose-response) · 📚 Content & Effectiveness (content share, assessment-score
+> distributions, submission-timing, engagement→score) · 🚨 Early-warning (the model).
 
 ## What it does today
 
@@ -26,6 +31,11 @@ here as a proxy for training-program analytics.
 - **Early engagement tracks success** — mean clicks in the first 4 weeks:
   Distinction **427** → Pass **317** → Fail **176** → Withdrawn **131**.
 - Engagement is concentrated in course content (28%), forums (20%), and quizzes (18%).
+- **Engagement is a dose-response signal** — across first-4-week engagement deciles, pass
+  rate climbs **7% → 75%** and mean assessment score **69 → 80**; early submitters (8+ days
+  before the due date) average **80.7** vs **75.0** for late ones.
+- **The funnel leaks early** — 32,593 registered → 29,915 started → 29,228 engaged →
+  25,843 assessed → **15,385 passed**; late/unknown registrants withdraw far more.
 - **Early-warning model** (first 4 weeks → at-risk, 2013→2014 temporal split): **ROC-AUC 0.79,
   PR-AUC 0.84**; at a ~70% recall operating point, **75% precision**. See the
   [model card](docs/model_card.md).
@@ -71,7 +81,8 @@ when deployed — so it runs **without** the 454 MB raw clickstream. Deploy on R
 │   └── build_marts.py        # run the SQL files
 ├── sql/
 │   ├── marts.sql             # analytical base tables
-│   └── metrics.sql           # governed KPI views
+│   ├── metrics.sql           # governed KPI views
+│   └── analytics.sql         # deep-dive KPI views (funnel, dose-response, assessments)
 ├── docs/
 │   ├── data_dictionary.md
 │   └── metric_glossary.md
@@ -83,8 +94,9 @@ when deployed — so it runs **without** the 454 MB raw clickstream. Deploy on R
 
 ## Roadmap
 
-- ✅ **Phase 2** — Streamlit + Plotly dashboard: outcomes, engagement timeline, content
-  performance, cohort drilldowns, anomaly flags.
+- ✅ **Phase 2** — six-tab Streamlit + Plotly dashboard: overview (donut + funnel), student
+  demographics & registration timing, outcomes (+ pass-rate heatmap), engagement
+  (timeline + dose-response), content & assessment-effectiveness deep-dive, anomaly flags.
 - ✅ **Phase 3** — early-warning deep-dive: predict withdrawal/fail from the first 4 weeks,
   with a temporal split, honest recall/PR-AUC, fairness check, and an intervention what-if.
 - **Phase 4** — packaged findings (annotated visuals / deck); optional validated LLM
