@@ -21,11 +21,17 @@ OUTCOME_COLORS = {
 }
 OUTCOME_ORDER = ["Distinction", "Pass", "Fail", "Withdrawn"]
 
+FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+GRID = "#eceef1"
+
 _LAYOUT = dict(
     paper_bgcolor=SURFACE, plot_bgcolor=SURFACE,
-    font=dict(color=INK, size=13),
-    margin=dict(l=10, r=10, t=10, b=10),
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
+    font=dict(family=FONT, color=INK, size=13),
+    margin=dict(l=8, r=8, t=16, b=8),
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0,
+                font=dict(color=MUTED, size=12)),
+    hoverlabel=dict(font=dict(family=FONT, size=12), bgcolor="#ffffff",
+                    bordercolor=GRID),
 )
 
 
@@ -40,7 +46,7 @@ def outcomes_by_course_fig(df: pd.DataFrame) -> go.Figure:
     fig.add_bar(name="Withdrawal", x=d["course"], y=(d["withdrawal_rate"] * 100).round(1),
                 marker_color=OUTCOME_COLORS["Withdrawn"], marker_line=dict(color=SURFACE, width=2))
     fig.update_layout(barmode="group", yaxis_title="rate (%)", **_LAYOUT)
-    fig.update_yaxes(showgrid=True, gridcolor="#ececec", ticksuffix="%")
+    fig.update_yaxes(showgrid=True, gridcolor=GRID, ticksuffix="%")
     fig.update_xaxes(showgrid=False, tickangle=-45)
     return fig
 
@@ -56,7 +62,7 @@ def engagement_by_outcome_fig(df: pd.DataFrame) -> go.Figure:
         textfont=dict(color=MUTED, size=12),
     ))
     fig.update_layout(showlegend=False, yaxis_title="avg clicks, first 4 weeks", **_LAYOUT)
-    fig.update_yaxes(showgrid=True, gridcolor="#ececec")
+    fig.update_yaxes(showgrid=True, gridcolor=GRID)
     fig.update_xaxes(showgrid=False)
     return fig
 
@@ -70,7 +76,7 @@ def engagement_timeline_fig(df: pd.DataFrame) -> go.Figure:
             fig.add_scatter(x=d["rel_week"], y=d["avg_clicks"], name=outcome, mode="lines",
                             line=dict(color=OUTCOME_COLORS[outcome], width=2))
     fig.update_layout(yaxis_title="avg clicks / student", xaxis_title="week from course start", **_LAYOUT)
-    fig.update_yaxes(showgrid=True, gridcolor="#ececec")
+    fig.update_yaxes(showgrid=True, gridcolor=GRID)
     fig.update_xaxes(showgrid=False)
     return fig
 
@@ -85,7 +91,7 @@ def content_fig(df: pd.DataFrame) -> go.Figure:
         textfont=dict(color=MUTED, size=11),
     ))
     fig.update_layout(showlegend=False, xaxis_title="% of total clicks", **_LAYOUT)
-    fig.update_xaxes(showgrid=True, gridcolor="#ececec")
+    fig.update_xaxes(showgrid=True, gridcolor=GRID)
     fig.update_yaxes(showgrid=False)
     return fig
 
@@ -98,7 +104,7 @@ def model_importance_fig(df: pd.DataFrame) -> go.Figure:
         marker_color=BLUE, marker_line=dict(color=SURFACE, width=2),
     ))
     fig.update_layout(showlegend=False, xaxis_title="importance", **_LAYOUT)
-    fig.update_xaxes(showgrid=True, gridcolor="#ececec")
+    fig.update_xaxes(showgrid=True, gridcolor=GRID)
     fig.update_yaxes(showgrid=False)
     return fig
 
@@ -111,8 +117,8 @@ def model_calibration_fig(df: pd.DataFrame) -> go.Figure:
     fig.add_scatter(x=df["mean_pred"], y=df["actual_rate"], mode="lines+markers",
                     name="model", line=dict(color=BLUE, width=2), marker=dict(size=7))
     fig.update_layout(xaxis_title="predicted risk", yaxis_title="actual at-risk rate", **_LAYOUT)
-    fig.update_xaxes(range=[0, 1], showgrid=True, gridcolor="#ececec")
-    fig.update_yaxes(range=[0, 1], showgrid=True, gridcolor="#ececec")
+    fig.update_xaxes(range=[0, 1], showgrid=True, gridcolor=GRID)
+    fig.update_yaxes(range=[0, 1], showgrid=True, gridcolor=GRID)
     return fig
 
 
@@ -159,7 +165,7 @@ def demographics_bar_fig(df: pd.DataFrame, dimension: str) -> go.Figure:
         textposition="outside", textfont=dict(color=MUTED, size=11),
     ))
     fig.update_layout(showlegend=False, xaxis_title="enrolments", **_LAYOUT)
-    fig.update_xaxes(showgrid=True, gridcolor="#ececec")
+    fig.update_xaxes(showgrid=True, gridcolor=GRID)
     fig.update_yaxes(showgrid=False)
     return fig
 
@@ -174,7 +180,7 @@ def registration_timing_fig(df: pd.DataFrame) -> go.Figure:
         textposition="outside", textfont=dict(color=MUTED, size=11),
     ))
     fig.update_layout(showlegend=False, yaxis_title="enrolments", **_LAYOUT)
-    fig.update_yaxes(showgrid=True, gridcolor="#ececec")
+    fig.update_yaxes(showgrid=True, gridcolor=GRID)
     fig.update_xaxes(showgrid=False)
     return fig
 
@@ -191,7 +197,7 @@ def engagement_dose_fig(df: pd.DataFrame) -> go.Figure:
                     marker=dict(size=7))
     fig.update_layout(yaxis_title="rate (%)",
                       xaxis_title="first-4-week engagement decile (1 = least active)", **_LAYOUT)
-    fig.update_yaxes(showgrid=True, gridcolor="#ececec", ticksuffix="%")
+    fig.update_yaxes(showgrid=True, gridcolor=GRID, ticksuffix="%")
     fig.update_xaxes(showgrid=False, dtick=1)
     return fig
 
@@ -206,7 +212,7 @@ def engagement_score_dose_fig(df: pd.DataFrame) -> go.Figure:
     ))
     fig.update_layout(showlegend=False, yaxis_title="avg assessment score",
                       xaxis_title="first-4-week engagement decile (1 = least active)", **_LAYOUT)
-    fig.update_yaxes(showgrid=True, gridcolor="#ececec", range=[60, 85])
+    fig.update_yaxes(showgrid=True, gridcolor=GRID, range=[60, 85])
     fig.update_xaxes(showgrid=False, dtick=1)
     return fig
 
@@ -222,7 +228,7 @@ def assessment_box_fig(df: pd.DataFrame) -> go.Figure:
             marker_color=BLUE, line=dict(color=BLUE), fillcolor="#dfeafb",
         )
     fig.update_layout(showlegend=False, yaxis_title="score", **_LAYOUT)
-    fig.update_yaxes(showgrid=True, gridcolor="#ececec", range=[0, 100])
+    fig.update_yaxes(showgrid=True, gridcolor=GRID, range=[0, 100])
     fig.update_xaxes(showgrid=False)
     return fig
 
@@ -239,7 +245,7 @@ def assessment_by_course_fig(df: pd.DataFrame) -> go.Figure:
         textfont=dict(color=MUTED, size=10),
     ))
     fig.update_layout(showlegend=False, xaxis_title="avg assessment score", **_LAYOUT)
-    fig.update_xaxes(showgrid=True, gridcolor="#ececec", range=[0, 100])
+    fig.update_xaxes(showgrid=True, gridcolor=GRID, range=[0, 100])
     fig.update_yaxes(showgrid=False)
     return fig
 
@@ -254,7 +260,7 @@ def submission_timing_fig(df: pd.DataFrame) -> go.Figure:
         textposition="outside", textfont=dict(color=MUTED, size=11),
     ))
     fig.update_layout(showlegend=False, yaxis_title="submissions", **_LAYOUT)
-    fig.update_yaxes(showgrid=True, gridcolor="#ececec")
+    fig.update_yaxes(showgrid=True, gridcolor=GRID)
     fig.update_xaxes(showgrid=False)
     return fig
 
@@ -287,6 +293,6 @@ def segment_fig(df: pd.DataFrame, dimension: str) -> go.Figure:
     fig.add_bar(name="Withdrawal", x=d["value"].astype(str), y=(d["withdrawal_rate"] * 100).round(1),
                 marker_color=OUTCOME_COLORS["Withdrawn"], marker_line=dict(color=SURFACE, width=2))
     fig.update_layout(barmode="group", yaxis_title="rate (%)", **_LAYOUT)
-    fig.update_yaxes(showgrid=True, gridcolor="#ececec", ticksuffix="%")
+    fig.update_yaxes(showgrid=True, gridcolor=GRID, ticksuffix="%")
     fig.update_xaxes(showgrid=False, tickangle=-30)
     return fig
