@@ -113,6 +113,29 @@ with tab_ov:
     k[2].metric("Withdrawal rate", f"{o['withdrawal_rate']*100:.1f}%")
     k[3].metric("Distinction rate", f"{o['distinction_rate']*100:.1f}%")
 
+    sect("AI summary", "An accelerator — the model only re-expresses the governed figures, "
+                       "and every number it writes is checked back against the warehouse.")
+    with st.expander("Generate a validated summary", expanded=False):
+        facts = nar.collect_facts(F, load_model())
+        if st.button("Generate", key="ai_gen"):
+            if nar.llm_configured():
+                try:
+                    text, source = nar.llm_summary(facts), "live model"
+                except Exception as exc:  # noqa: BLE001
+                    text, source = nar.deterministic_summary(facts), f"deterministic fallback ({exc})"
+            else:
+                text, source = nar.deterministic_summary(facts), "deterministic template (no model configured)"
+            ok, bad = nar.validate_narrative(text, facts)
+            st.markdown(text)
+            if ok:
+                st.success(f"✓ Every figure verified against the warehouse · source: {source}")
+            else:
+                st.warning(f"⚠ Figures not traceable to a governed metric: {', '.join(bad)} · source: {source}")
+        st.caption("Set `GOOGLE_API_KEY` (optionally `GEMINI_MODEL`) to generate with Gemini; "
+                   "otherwise the validated deterministic template is shown. The same "
+                   "validate-then-trust pattern is how a free-text classifier (e.g. survey "
+                   "verbatims) would be governed.")
+
     c1, c2 = st.columns(2)
     with c1:
         sect("Outcome mix", "Share of enrolments by final result.")
@@ -137,29 +160,6 @@ with tab_ov:
         "70% recall and 75% precision.",
         key=True,
     )
-
-    sect("AI summary", "An accelerator — the model only re-expresses the governed figures, "
-                       "and every number it writes is checked back against the warehouse.")
-    with st.expander("Generate a validated summary", expanded=False):
-        facts = nar.collect_facts(F, load_model())
-        if st.button("Generate", key="ai_gen"):
-            if nar.llm_configured():
-                try:
-                    text, source = nar.llm_summary(facts), "live model"
-                except Exception as exc:  # noqa: BLE001
-                    text, source = nar.deterministic_summary(facts), f"deterministic fallback ({exc})"
-            else:
-                text, source = nar.deterministic_summary(facts), "deterministic template (no model configured)"
-            ok, bad = nar.validate_narrative(text, facts)
-            st.markdown(text)
-            if ok:
-                st.success(f"✓ Every figure verified against the warehouse · source: {source}")
-            else:
-                st.warning(f"⚠ Figures not traceable to a governed metric: {', '.join(bad)} · source: {source}")
-        st.caption("Set `GOOGLE_API_KEY` (optionally `GEMINI_MODEL`) to generate with Gemini; "
-                   "otherwise the validated deterministic template is shown. The same "
-                   "validate-then-trust pattern is how a free-text classifier (e.g. survey "
-                   "verbatims) would be governed.")
 
 # ------------------------------------------------------------------- Students
 with tab_stu:
