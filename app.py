@@ -61,8 +61,12 @@ def insight(text: str, key: bool = False) -> None:
 
 
 st.title("Learning Analytics Studio")
-st.caption("Learner engagement and outcomes on the Open University dataset (OULAD) — "
-           "a reproducible, SQL-backed analytics pipeline. 32,593 enrolments · 10.6M activity events.")
+st.caption(
+    "From 32,593 learner enrolments and 10.6M activity events to decisions — who completes a "
+    "course, who disengages, and how early you can tell. A reproducible, SQL-backed pipeline on "
+    "the Open University dataset (OULAD): governed metrics, validated models, every number "
+    "traceable to its source."
+)
 
 
 @st.cache_data(show_spinner="Loading analytics…")
