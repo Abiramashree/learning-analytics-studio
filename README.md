@@ -67,9 +67,27 @@ when deployed — so it runs **without** the 454 MB raw clickstream. Deploy on R
 ## Design principles
 
 - **Deterministic & reproducible** — everything is SQL + fixed transforms; same input →
-  same output. (A later, optional LLM layer only *summarizes* validated results.)
+  same output.
 - **Governed metrics** — KPIs defined once in SQL, documented in the glossary.
 - **Quality first** — DQ checks run on every build.
+- **AI as a validated accelerator, never a source of truth** — see below.
+
+## AI accelerator (optional, validated)
+
+The Overview tab can generate a short executive summary with a language model. By design it
+is an *accelerator*, not an oracle:
+
+- The model is given **only the governed figures** already computed by the SQL, and is
+  instructed to re-express them verbatim — it never produces a number of its own.
+- Every figure in its output is then **checked back against the warehouse facts**
+  (`analytics/narrative.py` → `validate_narrative`); anything unverifiable is flagged in
+  the UI rather than shown as fact.
+- With no model configured it falls back to a **deterministic template** that is correct by
+  construction — so the dashboard never depends on an LLM to be right.
+
+Backend is any OpenAI-compatible endpoint via `OPENAI_API_KEY` (+ optional `OPENAI_BASE_URL`,
+`LLM_MODEL`). The same validate-then-trust pattern is how a free-text classifier (e.g. survey
+verbatims) would be governed. The guardrail is unit-tested offline (`tests/test_narrative.py`).
 
 ## Project structure
 
@@ -99,5 +117,6 @@ when deployed — so it runs **without** the 454 MB raw clickstream. Deploy on R
   (timeline + dose-response), content & assessment-effectiveness deep-dive, anomaly flags.
 - ✅ **Phase 3** — early-warning deep-dive: predict withdrawal/fail from the first 4 weeks,
   with a temporal split, honest recall/PR-AUC, fairness check, and an intervention what-if.
-- **Phase 4** — packaged findings (annotated visuals / deck); optional validated LLM
-  narrative layer; Tableau companion spec.
+- ✅ **Phase 4 (in progress)** — validated AI accelerator: LLM narrative constrained to
+  governed figures with a fact-checking guardrail + deterministic fallback; deterministic
+  course risk-tier classification. Next: packaged findings/deck, Tableau companion.

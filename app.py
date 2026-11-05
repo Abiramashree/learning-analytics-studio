@@ -10,6 +10,7 @@ model. Everything is deterministic SQL + fixed transforms. Run: streamlit run ap
 import streamlit as st
 
 import viz
+from analytics import narrative as nar
 from analytics.data_access import get_frames, load_model_artifacts
 
 st.set_page_config(page_title="Learning Analytics Studio", page_icon="🎓", layout="wide")
@@ -137,6 +138,29 @@ with tab_ov:
         key=True,
     )
 
+    sect("AI summary", "An accelerator — the model only re-expresses the governed figures, "
+                       "and every number it writes is checked back against the warehouse.")
+    with st.expander("Generate a validated summary", expanded=False):
+        facts = nar.collect_facts(F, load_model())
+        if st.button("Generate", key="ai_gen"):
+            if nar.llm_configured():
+                try:
+                    text, source = nar.llm_summary(facts), "live model"
+                except Exception as exc:  # noqa: BLE001
+                    text, source = nar.deterministic_summary(facts), f"deterministic fallback ({exc})"
+            else:
+                text, source = nar.deterministic_summary(facts), "deterministic template (no model configured)"
+            ok, bad = nar.validate_narrative(text, facts)
+            st.markdown(text)
+            if ok:
+                st.success(f"✓ Every figure verified against the warehouse · source: {source}")
+            else:
+                st.warning(f"⚠ Figures not traceable to a governed metric: {', '.join(bad)} · source: {source}")
+        st.caption("Set `OPENAI_API_KEY` (optionally `OPENAI_BASE_URL`, `LLM_MODEL`) to use a live "
+                   "model via any OpenAI-compatible endpoint; otherwise the validated template is shown. "
+                   "The same validate-then-trust pattern is how a free-text classifier (e.g. survey "
+                   "verbatims) would be governed.")
+
 # ------------------------------------------------------------------- Students
 with tab_stu:
     o = F["overall"].iloc[0]
@@ -198,6 +222,20 @@ with tab_out:
         show["withdrawal_rate"] = (show["withdrawal_rate"] * 100).round(1)
         st.dataframe(show.rename(columns={"withdrawal_rate": "withdrawal_%"}),
                      width="stretch", hide_index=True)
+
+    sect("Course risk tiers",
+         "Deterministic rule — withdrawal ≥ 40% = At risk, ≥ 30% = Watch, else Healthy.")
+    tiers = nar.classify_courses(F["outcomes_by_course"])
+    counts = tiers["risk_tier"].value_counts()
+    tc = st.columns(3)
+    tc[0].metric("At risk", int(counts.get("At risk", 0)))
+    tc[1].metric("Watch", int(counts.get("Watch", 0)))
+    tc[2].metric("Healthy", int(counts.get("Healthy", 0)))
+    disp = tiers.sort_values("withdrawal_rate", ascending=False).copy()
+    disp["pass_rate"] = (disp["pass_rate"] * 100).round(1)
+    disp["withdrawal_rate"] = (disp["withdrawal_rate"] * 100).round(1)
+    st.dataframe(disp.rename(columns={"pass_rate": "pass_%", "withdrawal_rate": "withdrawal_%"}),
+                 width="stretch", hide_index=True)
 
 # ----------------------------------------------------------------- Engagement
 with tab_eng:
