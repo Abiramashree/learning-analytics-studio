@@ -85,9 +85,10 @@ is an *accelerator*, not an oracle:
 - With no model configured it falls back to a **deterministic template** that is correct by
   construction — so the dashboard never depends on an LLM to be right.
 
-Backend is any OpenAI-compatible endpoint via `OPENAI_API_KEY` (+ optional `OPENAI_BASE_URL`,
-`LLM_MODEL`). The same validate-then-trust pattern is how a free-text classifier (e.g. survey
-verbatims) would be governed. The guardrail is unit-tested offline (`tests/test_narrative.py`).
+The model is **Gemini** (via its OpenAI-compatible endpoint) configured with `GOOGLE_API_KEY`
+(+ optional `GEMINI_MODEL`). The same validate-then-trust pattern is how a free-text classifier
+(e.g. survey verbatims) would be governed. The guardrail is unit-tested offline
+(`tests/test_narrative.py`).
 
 ## Project structure
 

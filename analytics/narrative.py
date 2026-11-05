@@ -8,8 +8,8 @@ number of its own. Every figure in its output is then checked back against the w
 facts, and anything unverifiable is surfaced. The whole feature is optional — with no LLM
 configured it falls back to a deterministic template that is correct by construction.
 
-Backend is swappable via any OpenAI-compatible endpoint (OpenAI, OpenRouter, Groq, a local
-Ollama/LM Studio server, …) through env vars; no heavy client dependency is required.
+The model is Gemini (via its OpenAI-compatible endpoint), configured with GOOGLE_API_KEY —
+the same key the rest of the toolkit uses. No heavy client dependency is required.
 """
 from __future__ import annotations
 
@@ -105,18 +105,22 @@ def classify_courses(outcomes: pd.DataFrame) -> pd.DataFrame:
     return d[["course", "enrolments", "pass_rate", "withdrawal_rate", "risk_tier"]]
 
 
-# ----------------------------------------------------------------- LLM (optional)
+# ----------------------------------------------------------------- Gemini (optional)
+# Gemini's OpenAI-compatible endpoint — reuses the same GOOGLE_API_KEY as the rest of the
+# toolkit, with no extra client dependency (plain HTTPS).
+GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/openai"
+
+
 def llm_configured() -> bool:
-    return bool(os.getenv("OPENAI_API_KEY"))
+    return bool(os.getenv("GOOGLE_API_KEY"))
 
 
 def llm_summary(f: Dict[str, Fact], timeout: int = 30) -> str:
-    """Generate a summary via an OpenAI-compatible endpoint. Raises if not configured."""
-    api_key = os.getenv("OPENAI_API_KEY")
+    """Generate a summary with Gemini (via its OpenAI-compatible endpoint). Raises if unset."""
+    api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
-        raise RuntimeError("No OPENAI_API_KEY set.")
-    base = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
-    model = os.getenv("LLM_MODEL", "gpt-4o-mini")
+        raise RuntimeError("No GOOGLE_API_KEY set.")
+    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
 
     facts_block = "\n".join(f"- {k}: {v.display} ({v.label})" for k, v in f.items())
     system = (
@@ -130,7 +134,7 @@ def llm_summary(f: Dict[str, Fact], timeout: int = 30) -> str:
         "messages": [{"role": "system", "content": system},
                      {"role": "user", "content": user}],
     }).encode()
-    req = urllib.request.Request(f"{base}/chat/completions", data=payload, method="POST",
+    req = urllib.request.Request(f"{GEMINI_BASE}/chat/completions", data=payload, method="POST",
                                  headers={"Authorization": f"Bearer {api_key}",
                                           "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as resp:

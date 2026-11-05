@@ -156,9 +156,9 @@ with tab_ov:
                 st.success(f"✓ Every figure verified against the warehouse · source: {source}")
             else:
                 st.warning(f"⚠ Figures not traceable to a governed metric: {', '.join(bad)} · source: {source}")
-        st.caption("Set `OPENAI_API_KEY` (optionally `OPENAI_BASE_URL`, `LLM_MODEL`) to use a live "
-                   "model via any OpenAI-compatible endpoint; otherwise the validated template is shown. "
-                   "The same validate-then-trust pattern is how a free-text classifier (e.g. survey "
+        st.caption("Set `GOOGLE_API_KEY` (optionally `GEMINI_MODEL`) to generate with Gemini; "
+                   "otherwise the validated deterministic template is shown. The same "
+                   "validate-then-trust pattern is how a free-text classifier (e.g. survey "
                    "verbatims) would be governed.")
 
 # ------------------------------------------------------------------- Students
