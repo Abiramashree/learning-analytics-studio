@@ -1,123 +1,97 @@
-# 🎓 Learning Analytics Studio
+# Learning Analytics Studio
 
-A reproducible learning-analytics pipeline and (soon) dashboard built on the **Open
-University Learning Analytics Dataset (OULAD)** — 32,593 learner enrolments and a
-**10.6M-row engagement clickstream**. A portfolio project inspired by a Learning
-Analytics / Employee-Experience data-science role; **all data is the public OULAD**, used
-here as a proxy for training-program analytics.
+**Live dashboard → https://learning-analytics-studio.streamlit.app/**
 
-> Status: **Phase 3 complete** — SQL warehouse + data-quality + governed KPIs, a six-tab
-> **Streamlit/Plotly dashboard**, and an **early-warning model** (predict at-risk from the
-> first 4 weeks; temporal split; honest metrics + fairness; intervention what-if).
->
-> **Dashboard tabs:** 📊 Overview (business framing, outcome-mix donut, learner funnel) ·
-> 👥 Students (registrations, cohort composition, registration lead time) · 🎯 Outcomes
-> (by-course, pass-rate heatmap, segment gaps, anomalies) · 📈 Engagement (by-outcome,
-> timeline, dose-response) · 📚 Content & Effectiveness (content share, assessment-score
-> distributions, submission-timing, engagement→score) · 🚨 Early-warning (the model).
+A learning-analytics project that measures learner engagement and training-program
+effectiveness end to end — from raw event data to a governed dashboard and a leakage-free
+early-warning model — and does it the way a careful data scientist would: deterministic,
+reproducible, honest about its own limits, and using AI only where it can be validated.
 
-## What it does today
+It is built on the **Open University Learning Analytics Dataset (OULAD)** — 32,593 learner
+enrolments and a 10.6-million-row engagement clickstream — used here as a public proxy for
+workplace / training-program learning analytics.
 
-- **ETL** (`etl/`) loads the 7 raw OULAD CSVs into a **DuckDB** warehouse.
-- **Data-quality checks** (`etl/quality.py`) validate row counts, value domains, key
-  uniqueness, referential integrity, and missingness — flagging issues with OK/WARN/FAIL.
-- **SQL marts** (`sql/marts.sql`) build a clean learner-level base table plus engagement
-  and content marts; **KPI views** (`sql/metrics.sql`) define the governed metrics.
-- **Docs** (`docs/`): a data dictionary and a metric glossary (the "source of truth").
+---
 
-## Headline findings (full OULAD)
+## The question it answers
 
-- Outcomes: **47.2% pass · 31.2% withdrawal · 21.6% fail · 9.3% distinction**.
-- **Early engagement tracks success** — mean clicks in the first 4 weeks:
-  Distinction **427** → Pass **317** → Fail **176** → Withdrawn **131**.
-- Engagement is concentrated in course content (28%), forums (20%), and quizzes (18%).
-- **Engagement is a dose-response signal** — across first-4-week engagement deciles, pass
-  rate climbs **7% → 75%** and mean assessment score **69 → 80**; early submitters (8+ days
-  before the due date) average **80.7** vs **75.0** for late ones.
-- **The funnel leaks early** — 32,593 registered → 29,915 started → 29,228 engaged →
-  25,843 assessed → **15,385 passed**; late/unknown registrants withdraw far more.
-- **Early-warning model** (first 4 weeks → at-risk, 2013→2014 temporal split): **ROC-AUC 0.79,
-  PR-AUC 0.84**; at a ~70% recall operating point, **75% precision**. See the
-  [model card](docs/model_card.md).
+*Who completes an online course, who disengages — and how early can you tell?*
 
-## Quick start
+Every part of the project is in service of that question: understanding the learners,
+measuring what happens to them, finding the behavioural signal that predicts the outcome,
+and turning that signal into something a program team could act on in time to help.
 
-1. Download OULAD (free) from <https://analyse.kmi.open.ac.uk/open_dataset> and put the 7
-   CSVs in `data/raw/` (kept out of git).
-2. Build the warehouse:
+## What it shows
 
-```bash
-pip install -r requirements.txt
-python scripts/build_warehouse.py        # load -> quality checks -> marts/KPIs
-```
+The dashboard is organised as a report with six sections:
 
-Point at CSVs elsewhere with `OULAD_RAW=/path/to/csvs python scripts/build_warehouse.py`.
+- **Overview** — headline outcomes, the outcome mix, a learner-progression funnel, and a
+  one-paragraph executive summary.
+- **Students** — who the learners are: cohort size, composition across demographics, and how
+  early they register.
+- **Outcomes** — pass/withdrawal by course run, a pass-rate heatmap, equity gaps across
+  cohorts, statistical outliers, and rule-based course risk tiers.
+- **Engagement** — how learners interact over time, and the engagement→outcome relationship.
+- **Content & effectiveness** — where attention goes, assessment-score distributions,
+  submission timing, and how engagement translates into measured learning.
+- **Early warning** — a model that flags at-risk learners from their first four weeks, with
+  honest evaluation, a fairness audit, calibration, and an intervention trade-off tool.
 
-3. Run the dashboard:
+## What the data says
 
-```bash
-python scripts/export_serving.py   # small aggregates for fast/portable serving
-streamlit run app.py
-```
+- Outcomes overall: **47% pass · 31% withdrawal · 22% fail · 9% distinction**.
+- **Engagement is a dose-response signal.** Across deciles of first-four-week activity, pass
+  rate climbs from **7% to 75%** and mean assessment score from **69 to 80**. The
+  relationship is monotonic — which is exactly why an early-warning model is feasible.
+- **The cohort leaks early.** Of 32,593 registrations, ~29,900 start, ~25,800 submit an
+  assessment, and **15,385 pass** — with the largest drop-off before the first assessment.
+- **Timing is a cheap pre-course signal.** Learners who register late (or with no recorded
+  date) withdraw far more often; early submitters (8+ days before a due date) outscore late
+  submitters (**80.7** vs **75.0**).
 
-The dashboard reads the warehouse locally, or the committed `data/serving/*.parquet`
-when deployed — so it runs **without** the 454 MB raw clickstream. Deploy on Railway
-(included `Dockerfile` + `railway.json`) or Streamlit Community Cloud (point it at `app.py`).
+## Design decisions (the nuances that matter)
 
-## Design principles
+- **Deterministic by default.** Every number comes from SQL and fixed transforms, so the same
+  input always produces the same output. There is no randomness in the reported figures.
+- **Governed metrics.** Each KPI is defined exactly once as a SQL view and documented in a
+  metric glossary — a single source of truth, rather than numbers re-derived ad hoc per chart.
+- **Data quality is a gate, not an afterthought.** Row counts, value domains, key uniqueness,
+  referential integrity and missingness are checked on every build and reported as
+  OK/WARN/FAIL.
+- **The model is built to be trusted, not to look good.** It uses **only first-four-week
+  features** (no post-outcome leakage), is evaluated on a **temporal split** (train on 2013
+  course runs, test on 2014 — future cohorts, not shuffled rows), and is reported with
+  **PR-AUC and recall at a chosen operating point** rather than a flattering accuracy number.
+  It reaches **ROC-AUC 0.79 / PR-AUC 0.84**, and ~**75% precision at ~70% recall**.
+- **Fairness and calibration are first-class.** Flag rate and recall are reported per group
+  (gender, disability, age, deprivation), and predicted risk is checked against actual risk.
+- **AI is a validated accelerator, never a source of truth.** An optional Gemini-written
+  summary is given *only* the governed figures and told to re-express them; every number it
+  produces is then **checked back against the warehouse**, and anything unverifiable is
+  flagged. With no model configured it falls back to a deterministic template that is correct
+  by construction — so the dashboard never depends on an LLM to be right.
+- **Deploys without the raw data.** The 454 MB clickstream stays out of the repository; the
+  app runs on a ~220 KB bundle of pre-computed aggregates, so the live demo is light and the
+  sensitive raw data never ships.
 
-- **Deterministic & reproducible** — everything is SQL + fixed transforms; same input →
-  same output.
-- **Governed metrics** — KPIs defined once in SQL, documented in the glossary.
-- **Quality first** — DQ checks run on every build.
-- **AI as a validated accelerator, never a source of truth** — see below.
+## Honest limitations
 
-## AI accelerator (optional, validated)
+- OULAD is 2013–2014 Open University data — a **proxy**, not any specific organisation's.
+- Engagement is measured as platform clicks only; it says nothing about off-platform learning
+  or content quality.
+- The engagement→outcome relationship is **predictive, not causal** — engagement correlates
+  with ability, motivation and available time. A flag is a prompt for support, not a judgement
+  about a learner, and proving that intervention *causes* better outcomes would need a
+  controlled study.
 
-The Overview tab can generate a short executive summary with a language model. By design it
-is an *accelerator*, not an oracle:
+## What it demonstrates
 
-- The model is given **only the governed figures** already computed by the SQL, and is
-  instructed to re-express them verbatim — it never produces a number of its own.
-- Every figure in its output is then **checked back against the warehouse facts**
-  (`analytics/narrative.py` → `validate_narrative`); anything unverifiable is flagged in
-  the UI rather than shown as fact.
-- With no model configured it falls back to a **deterministic template** that is correct by
-  construction — so the dashboard never depends on an LLM to be right.
+End-to-end ownership of a learning-analytics problem: ETL and data-quality engineering,
+reproducible SQL modelling and metric governance, clear and accessible data visualisation,
+a leakage-free predictive model with honest evaluation and fairness, and disciplined,
+validated use of AI — all framed around a decision a program team would actually make.
 
-The model is **Gemini** (via its OpenAI-compatible endpoint) configured with `GOOGLE_API_KEY`
-(+ optional `GEMINI_MODEL`). The same validate-then-trust pattern is how a free-text classifier
-(e.g. survey verbatims) would be governed. The guardrail is unit-tested offline
-(`tests/test_narrative.py`).
+## Built with
 
-## Project structure
-
-```
-├── config.py                 # env-driven paths/params
-├── etl/
-│   ├── load_raw.py           # CSV -> DuckDB raw tables
-│   ├── quality.py            # data-quality checks (OK/WARN/FAIL)
-│   └── build_marts.py        # run the SQL files
-├── sql/
-│   ├── marts.sql             # analytical base tables
-│   ├── metrics.sql           # governed KPI views
-│   └── analytics.sql         # deep-dive KPI views (funnel, dose-response, assessments)
-├── docs/
-│   ├── data_dictionary.md
-│   └── metric_glossary.md
-├── scripts/build_warehouse.py
-├── tests/
-├── data/raw/                 # the 7 OULAD CSVs (gitignored)
-└── requirements.txt
-```
-
-## Roadmap
-
-- ✅ **Phase 2** — six-tab Streamlit + Plotly dashboard: overview (donut + funnel), student
-  demographics & registration timing, outcomes (+ pass-rate heatmap), engagement
-  (timeline + dose-response), content & assessment-effectiveness deep-dive, anomaly flags.
-- ✅ **Phase 3** — early-warning deep-dive: predict withdrawal/fail from the first 4 weeks,
-  with a temporal split, honest recall/PR-AUC, fairness check, and an intervention what-if.
-- ✅ **Phase 4 (in progress)** — validated AI accelerator: LLM narrative constrained to
-  governed figures with a fact-checking guardrail + deterministic fallback; deterministic
-  course risk-tier classification. Next: packaged findings/deck, Tableau companion.
+Python · DuckDB · SQL · scikit-learn · Streamlit · Plotly · (optional) Gemini.
+Data © The Open University — [OULAD](https://analyse.kmi.open.ac.uk/open_dataset), open dataset.
