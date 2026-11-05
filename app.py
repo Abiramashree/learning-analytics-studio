@@ -62,10 +62,11 @@ def insight(text: str, key: bool = False) -> None:
 
 st.title("Learning Analytics Studio")
 st.caption(
-    "From 32,593 learner enrolments and 10.6M activity events to decisions — who completes a "
-    "course, who disengages, and how early you can tell. A reproducible, SQL-backed pipeline on "
-    "the Open University dataset (OULAD): governed metrics, validated models, every number "
-    "traceable to its source."
+    "Measuring learner engagement and training-program effectiveness end to end: ETL and "
+    "data-quality checks, governed SQL metrics, dashboards and deep-dives, and an early-warning "
+    "model that flags at-risk learners in time to act. Built on the Open University dataset "
+    "(OULAD — 32,593 enrolments · 10.6M activity events) as a proxy for workplace learning "
+    "analytics; fully reproducible in SQL, with AI used only as a validated accelerator."
 )
 
 
