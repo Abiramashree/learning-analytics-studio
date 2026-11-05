@@ -7,6 +7,8 @@ when deployed) and renders a narrative overview, learner demographics, outcomes,
 behaviour, a content/assessment-effectiveness deep-dive, and a leakage-free early-warning
 model. Everything is deterministic SQL + fixed transforms. Run: streamlit run app.py
 """
+import os
+
 import streamlit as st
 
 import viz
@@ -14,6 +16,15 @@ from analytics import narrative as nar
 from analytics.data_access import get_frames, load_model_artifacts
 
 st.set_page_config(page_title="Learning Analytics Studio", page_icon="🎓", layout="wide")
+
+# Make Streamlit Cloud secrets available as env vars (the AI layer reads os.getenv),
+# so GOOGLE_API_KEY works whether set as a secret or a real environment variable.
+try:
+    for _k in ("GOOGLE_API_KEY", "GEMINI_MODEL"):
+        if _k in st.secrets and not os.getenv(_k):
+            os.environ[_k] = str(st.secrets[_k])
+except Exception:  # noqa: BLE001  (no secrets file configured — fine)
+    pass
 
 # ----------------------------------------------------------------- styling
 st.markdown(
